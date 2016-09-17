@@ -1,11 +1,16 @@
 package de.sgnosti.playground.java8;
 
+import static de.sgnosti.function.LoggingFunction.loggingConsumer;
+import static de.sgnosti.function.LoggingFunction.loggingFunction;
+import static de.sgnosti.function.LoggingFunction.loggingSupplier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,6 +90,14 @@ public class CompletableFutureTest {
 			throw e.getCause();
 		}
 		fail("never got to the assert\n");
+	}
+
+	@Test
+	public void concatenateTasksUsingLoggingFunctions() throws Throwable {
+		CompletionStage<String> other = CompletableFuture.supplyAsync(loggingSupplier(() -> " | second"));
+		CompletableFuture.supplyAsync(loggingSupplier(() -> "first")).thenCombine(other, String::concat)
+				.thenApply(loggingFunction(s -> s + " | third"))
+				.thenAccept(loggingConsumer(s -> assertTrue("first | second | third".equals(s)))).get();
 	}
 
 }
