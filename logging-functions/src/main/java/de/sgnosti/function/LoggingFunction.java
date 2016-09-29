@@ -8,6 +8,13 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * * Wrapper for different interfaces of the java.util.function package that
+ * will log the beginning of the task
+ * 
+ * @author sgnosti
+ *
+ */
 public class LoggingFunction {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoggingFunction.class);
 	
