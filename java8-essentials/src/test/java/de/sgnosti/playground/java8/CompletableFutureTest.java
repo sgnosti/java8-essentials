@@ -1,8 +1,7 @@
 package de.sgnosti.playground.java8;
 
-import static de.sgnosti.function.LoggingFunction.loggingConsumer;
-import static de.sgnosti.function.LoggingFunction.loggingFunction;
-import static de.sgnosti.function.LoggingFunction.loggingSupplier;
+import static de.sgnosti.function.DelayedFunction.*;
+import static de.sgnosti.function.LoggingFunction.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -102,23 +101,19 @@ public class CompletableFutureTest {
 				.thenAccept(loggingConsumer(s -> assertTrue("first | second | third".equals(s)))).get();
 	}
 
-//	@Test
-//	 public void concatenateTasksUsingDelayedFunctions() throws Throwable {
-//	 final CompletionStage<String> other =
-//	 CompletableFuture.supplyAsync(delayedSupplier(() -> " | second"));
-//	 CompletableFuture.supplyAsync(delayedSupplier(() ->
-//	 "first")).thenCombine(other, String::concat)
-//	 .thenApply(delayedFunction(s -> s + " |
-//	 third")).thenApply(delayedFunction(s -> s))
-//	 .thenAccept(delayedConsumer(s -> assertTrue("first | second |
-//	 third".equals(s)))).get();
-//	 }
-//
-//	@Test
-//	public void concatenateAndCombine() throws Throwable {
-//		final CompletionStage<String> first = CompletableFuture.supplyAsync(delayedSupplier(() -> "first"));
-//		final CompletionStage<String> second = CompletableFuture.supplyAsync(delayedSupplier(() -> "second"));
-//	}
+	@Test
+	public void concatenateTasksUsingDelayedFunctions() throws Throwable {
+		final CompletionStage<String> other = CompletableFuture.supplyAsync(delayedSupplier(() -> " | second"));
+		CompletableFuture.supplyAsync(delayedSupplier(() -> "first")).thenCombine(other, String::concat)
+				.thenApply(delayedFunction(s -> s + " | third")).thenApply(delayedFunction(s -> s))
+				.thenAccept(delayedConsumer(s -> assertTrue("first | second | third".equals(s)))).get();
+	}
+
+	@Test
+	public void concatenateAndCombine() throws Throwable {
+		final CompletionStage<String> first = CompletableFuture.supplyAsync(delayedSupplier(() -> "first"));
+		final CompletionStage<String> second = CompletableFuture.supplyAsync(delayedSupplier(() -> "second"));
+	}
 
 	@Test
 	public void addTasksAndThenSendResult() throws Throwable {
