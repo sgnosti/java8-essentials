@@ -1,17 +1,15 @@
 package de.sgnosti.playground.java8;
 
-import java.time.Duration;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ForkJoinVsCompletableFuture {
@@ -22,65 +20,59 @@ public class ForkJoinVsCompletableFuture {
 
 	private static final Random RANDOM = new Random();
 
-	private ExecutorService threadPool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-	private ForkJoinPool forkJoinPool = new ForkJoinPool(NUMBER_OF_THREADS);
+	private final ExecutorService threadPool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+	private final ForkJoinPool forkJoinPool = new ForkJoinPool(NUMBER_OF_THREADS);
 
 	@After
 	public void tearDown() throws InterruptedException {
 		if (!threadPool.awaitTermination(0, TimeUnit.SECONDS))
-			System.out.println("tasks have been cancelled!!!");
+			System.out.println("tasks have been cancelled on thread pool!!!");
 		if (!forkJoinPool.awaitTermination(0, TimeUnit.SECONDS))
-			System.out.println("tasks have been cancelled!!!");
+			System.out.println("tasks have been cancelled on fork join pool!!!");
 	}
 
 	@Test
 	public void runTaskOnce() throws Exception {
 		System.out.println("start");
-		test(loopTask(1, threadPool, computation((long) 1e9)));
+		test(loopTask(1, threadPool, computation(() -> (long) 1e9)));
 		System.out.println("end");
 	}
 
 	@Test
 	public void threadPoolWithoutJoin() throws Exception {
-
-		test(loopTask(NUMBER_OF_TASKS, threadPool, computation(RANDOM.nextInt(MAX_TIME) * (long) 1e8)));
+		test(loopTask(NUMBER_OF_TASKS, threadPool, computation(() -> RANDOM.nextInt(MAX_TIME) * (long) 1e8)));
 	}
 
 	@Test
-	@Ignore
-	public void forkJoinQueue() throws InterruptedException {
-		long startTime = System.currentTimeMillis();
-		IntStream.rangeClosed(1, NUMBER_OF_TASKS)
-				.forEach(taskId -> forkJoinPool.execute(computation(RANDOM.nextInt(MAX_TIME) * (long) 1e9)));
-		forkJoinPool.awaitTermination(30, TimeUnit.SECONDS);
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		System.out.println("Fork join pool took " + elapsedTime);
-		System.out.println("########################\n\n\n");
+	public void forkJoinQueue() throws Exception {
+		test(loopTask(NUMBER_OF_TASKS, forkJoinPool, computation(() -> RANDOM.nextInt(MAX_TIME) * (long) 1e8)));
 	}
 
-	private Runnable computation(long maxIterations) {
+	private Runnable computation(Supplier<Long> supplier) {
 		return () -> {
-			double result = LongStream.range(0, maxIterations).average().orElse(0) + 0;
-			System.out.println(result);
+			LongStream.range(0, supplier.get()).average();
 		};
 	}
 
 	private Runnable loopTask(int numberOfTasks, ExecutorService executorService, Runnable task) {
 		return () -> {
 			IntStream.rangeClosed(1, numberOfTasks).forEach(taskId -> executorService.execute(task));
+			executorService.shutdown();
 			try {
-				if (!executorService.awaitTermination(30, TimeUnit.SECONDS))
+				if (executorService.awaitTermination(60, TimeUnit.SECONDS))
+					System.out.println("Execution finished on " + executorService);
+				else
 					System.out.println("Timeout on " + executorService);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				System.out.println("Exception on " + executorService);
 			}
 		};
 	}
 
 	private long test(Runnable task) throws Exception {
-		long startTime = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 		task.run();
-		long elapsedTime = System.currentTimeMillis() - startTime;
+		final long elapsedTime = System.currentTimeMillis() - startTime;
 		System.out.println("Execution took " + elapsedTime / 1000.0);
 		return elapsedTime;
 
