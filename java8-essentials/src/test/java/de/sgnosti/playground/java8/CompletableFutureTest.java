@@ -9,14 +9,18 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.junit.After;
@@ -30,8 +34,10 @@ public class CompletableFutureTest {
 	private final Logger LOGGER = LoggerFactory.getLogger(CompletableFutureTest.class);
 
 	private static final int NUMBER_OF_THREADS = 5;
+	private final Random RANDOM = new Random();
 
 	private final ExecutorService pool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+	
 
 	@After
 	public void dispose() throws InterruptedException {
@@ -113,6 +119,9 @@ public class CompletableFutureTest {
 	public void concatenateAndCombine() throws Throwable {
 		final CompletionStage<String> first = CompletableFuture.supplyAsync(delayedSupplier(() -> "first"));
 		final CompletionStage<String> second = CompletableFuture.supplyAsync(delayedSupplier(() -> "second"));
+		final CompletionStage<String> third = CompletableFuture.supplyAsync(delayedSupplier(() -> "third"));
+		final CompletionStage<String> fourth = CompletableFuture.supplyAsync(delayedSupplier(() -> "fourth"));
+
 	}
 
 	@Test
@@ -123,6 +132,25 @@ public class CompletableFutureTest {
 		futures.add(CompletableFuture.runAsync(task(3, 1000)));
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
 				.thenRun(() -> System.out.println("Done"));
+	}
+
+	@Test
+	public void addTasksAndRemoveFinishedTasksThenSendResult() throws Throwable {
+		Map<Integer, CompletableFuture<Void>> futures = new ConcurrentHashMap<>();
+		AtomicInteger integer = new AtomicInteger();
+		for (int i = 0; i < 20; i++) {
+			int id = integer.incrementAndGet();
+			futures.put(id, CompletableFuture.runAsync(task(id, RANDOM.nextInt(5) * 1000)).thenRun(() -> futures.remove(id)));
+		}
+		Thread.sleep(10000);
+		System.out.println("futures size " + futures.size());
+		CompletableFuture.allOf(futures.values().toArray(new CompletableFuture[futures.size()]))
+				.thenRun(() -> System.out.println("Done"));
+	}
+
+	private void removeTask(List<CompletableFuture<?>> list, CompletableFuture<?> task) {
+		list.remove(task);
+		System.out.println("Removed task. New size is " + list.size());
 	}
 
 	private Runnable task(int counter, long sleepTime) {
