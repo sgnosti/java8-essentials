@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class CompletableFutureTest {
 		pool.awaitTermination(5, TimeUnit.SECONDS);
 	}
 
+	@Ignore
 	@Test
 	public void pullApproach() {
 		ExternalService<String> externalService = new ExternalService<>("pullApproach", "ok");
@@ -61,6 +63,7 @@ public class CompletableFutureTest {
 		LOGGER.info("done pull approach\n");
 	}
 
+	@Ignore
 	@Test
 	public void pushApproach() {
 		final ExternalService<String> externalService = new ExternalService<>("pushApproach", "ok");
@@ -71,6 +74,7 @@ public class CompletableFutureTest {
 		LOGGER.info("done push approach\n");
 	}
 
+	@Ignore
 	@Test
 	public void pushApproachUsingCommonPool() {
 		final ExternalService<String> externalService = new ExternalService<>("pushApproachUsingCommonPool", "ok");
@@ -80,6 +84,7 @@ public class CompletableFutureTest {
 		LOGGER.info("done push approach using common pool\n");
 	}
 
+	@Ignore
 	@Test(expected = AssertionError.class)
 	public void concatenateTasks() {
 		CompletableFuture.supplyAsync(new ExternalService<String>("first", "second")).thenApply(s -> s + " | third")
@@ -87,6 +92,7 @@ public class CompletableFutureTest {
 		LOGGER.error("never got to the assert but did not throw any exception\n");
 	}
 
+	@Ignore
 	@Test(expected = AssertionError.class)
 	public void concatenateTasksAndThrowExceptions() throws Throwable {
 		try {
@@ -99,6 +105,7 @@ public class CompletableFutureTest {
 		fail("never got to the assert\n");
 	}
 
+	@Ignore
 	@Test
 	public void concatenateTasksUsingLoggingFunctions() throws Throwable {
 		final CompletionStage<String> other = CompletableFuture.supplyAsync(loggingSupplier(() -> " | second"));
@@ -107,6 +114,7 @@ public class CompletableFutureTest {
 				.thenAccept(loggingConsumer(s -> assertTrue("first | second | third".equals(s)))).get();
 	}
 
+	@Ignore
 	@Test
 	public void concatenateTasksUsingDelayedFunctions() throws Throwable {
 		final CompletionStage<String> other = CompletableFuture.supplyAsync(delayedSupplier(() -> " | second"));
@@ -115,6 +123,7 @@ public class CompletableFutureTest {
 				.thenAccept(delayedConsumer(s -> assertTrue("first | second | third".equals(s)))).get();
 	}
 
+	@Ignore
 	@Test
 	public void concatenateAndCombine() throws Throwable {
 		final CompletionStage<String> first = CompletableFuture.supplyAsync(delayedSupplier(() -> "first"));
@@ -124,6 +133,7 @@ public class CompletableFutureTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void addTasksAndThenSendResult() throws Throwable {
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -134,6 +144,7 @@ public class CompletableFutureTest {
 				.thenRun(() -> System.out.println("Done"));
 	}
 
+	@Ignore
 	@Test
 	public void addTasksAndRemoveFinishedTasksThenSendResult() throws Throwable {
 		Map<Integer, CompletableFuture<Void>> futures = new ConcurrentHashMap<>();
@@ -148,6 +159,7 @@ public class CompletableFutureTest {
 				.thenRun(() -> System.out.println("Done"));
 	}
 
+	@Ignore
 	@Test
 	public void throwExceptionInFirstTask() {
 		// nothing happens
@@ -156,6 +168,7 @@ public class CompletableFutureTest {
 		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).exceptionally(t -> null).thenRun(() -> System.out.println("Done"));
 	}
 
+	@Ignore
 	@Test
 	public void throwAnotherExceptionInFirstTask() {
 		// nothing happens
@@ -163,6 +176,8 @@ public class CompletableFutureTest {
 		// handle exception
 		CompletableFuture.supplyAsync(()-> 1 / 0).exceptionally(t -> 0).thenAccept(result ->System.out.println(result));
 	}
+	
+	
 	
 	private Runnable task(int counter, long sleepTime) {
 		return () -> {
