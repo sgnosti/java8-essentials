@@ -148,11 +148,22 @@ public class CompletableFutureTest {
 				.thenRun(() -> System.out.println("Done"));
 	}
 
-	private void removeTask(List<CompletableFuture<?>> list, CompletableFuture<?> task) {
-		list.remove(task);
-		System.out.println("Removed task. New size is " + list.size());
+	@Test
+	public void throwExceptionInFirstTask() {
+		// nothing happens
+		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).thenRun(() -> System.out.println("Done"));
+		// handle exception
+		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).exceptionally(t -> null).thenRun(() -> System.out.println("Done"));
 	}
 
+	@Test
+	public void throwAnotherExceptionInFirstTask() {
+		// nothing happens
+		CompletableFuture.supplyAsync(()-> 1 / 0).thenAccept(result ->System.out.println(result));
+		// handle exception
+		CompletableFuture.supplyAsync(()-> 1 / 0).exceptionally(t -> 0).thenAccept(result ->System.out.println(result));
+	}
+	
 	private Runnable task(int counter, long sleepTime) {
 		return () -> {
 			System.out.println("start " + counter);
