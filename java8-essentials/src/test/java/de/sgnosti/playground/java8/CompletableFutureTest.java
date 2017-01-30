@@ -42,6 +42,7 @@ public class CompletableFutureTest {
 
 	@After
 	public void dispose() throws InterruptedException {
+		pool.shutdown();
 		pool.awaitTermination(5, TimeUnit.SECONDS);
 	}
 
@@ -161,23 +162,22 @@ public class CompletableFutureTest {
 
 	@Ignore
 	@Test
-	public void throwExceptionInFirstTask() {
+	public void throwExceptionInVoidMethod() {
 		// nothing happens
-		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).thenRun(() -> System.out.println("Done"));
-		// handle exception
+		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).thenRun(() -> fail());
+		// do nothing in case of exception
 		CompletableFuture.runAsync(()-> System.out.print(1 / 0)).exceptionally(t -> null).thenRun(() -> System.out.println("Done"));
 	}
 
-	@Ignore
 	@Test
-	public void throwAnotherExceptionInFirstTask() {
+	public void throwExceptionInTaskWithReturnValue() {
 		// nothing happens
-		CompletableFuture.supplyAsync(()-> 1 / 0).thenAccept(result ->System.out.println(result));
-		// handle exception
-		CompletableFuture.supplyAsync(()-> 1 / 0).exceptionally(t -> 0).thenAccept(result ->System.out.println(result));
+		CompletableFuture.supplyAsync(()-> 1 / 0).thenAccept(result -> fail());
+		// return something else in case of exception, should print 0
+		CompletableFuture.supplyAsync(()-> 1 / 0).exceptionally(t -> 0).thenAccept(result -> assertEquals(Integer.valueOf(0), result));
+		// handle exception properly, should print 0
+		CompletableFuture.supplyAsync(()-> 1 / 0).handle((result, exception) -> (exception != null)? result : 0).thenAccept(result -> assertEquals(Integer.valueOf(0), result));	
 	}
-	
-	
 	
 	private Runnable task(int counter, long sleepTime) {
 		return () -> {
