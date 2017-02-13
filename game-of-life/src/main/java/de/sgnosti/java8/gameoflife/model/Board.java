@@ -24,6 +24,10 @@ public class Board {
 				cells[y * width + x] = new Cell(new Position(x, y), values[y * width + x]);
 	}
 
+	public Cell getCellAt(Position position) {
+		return cells[position.getY() * width + position.getX()];
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(height * width + height);

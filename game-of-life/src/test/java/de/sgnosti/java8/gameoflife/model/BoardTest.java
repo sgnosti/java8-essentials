@@ -1,6 +1,8 @@
 package de.sgnosti.java8.gameoflife.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -34,5 +36,19 @@ public class BoardTest {
 		};
 		Board board = new Board(4, 2, array);
 		assertEquals("ooox\noxoo\n", board.toString());
+	}
+
+	@Test
+	public void getCellAtTheCorners() {
+		boolean[] array = { //
+				o, o, o, x, //
+				o, x, o, o //
+		};
+		Board board = new Board(4, 2, array);
+
+		assertFalse(board.getCellAt(new Position(0, 0)).isAlive());
+		assertTrue(board.getCellAt(new Position(0, 3)).isAlive());
+		assertFalse(board.getCellAt(new Position(1, 0)).isAlive());
+		assertFalse(board.getCellAt(new Position(1, 3)).isAlive());
 	}
 }
