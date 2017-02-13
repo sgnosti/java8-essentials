@@ -24,7 +24,7 @@ public class Cell {
 
 	@Override
 	public String toString() {
-		return alive ? "+" : "o";
+		return alive ? "x" : "o";
 	}
 
 	@Override

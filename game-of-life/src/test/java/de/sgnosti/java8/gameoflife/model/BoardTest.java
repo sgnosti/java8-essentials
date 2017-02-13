@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class BoardTest {
+	private static final boolean o = false;
+	private static final boolean x = false;
 
 	@Test
 	public void emptyBoard() {
@@ -27,10 +29,10 @@ public class BoardTest {
 	@Test
 	public void initializeBoardWithArrayOfBooleans() {
 		boolean[] array = { //
-				false, false, false, true, //
-				false, true, false, false //
+				o, o, o, x, //
+				o, x, o, o //
 		};
 		Board board = new Board(4, 2, array);
-		assertEquals("ooo+\no+oo\n", board.toString());
+		assertEquals("ooox\noxoo\n", board.toString());
 	}
 }
