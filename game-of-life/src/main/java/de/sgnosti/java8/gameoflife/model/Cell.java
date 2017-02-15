@@ -3,17 +3,22 @@ package de.sgnosti.java8.gameoflife.model;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Cell {
+class Cell {
 
 	private final Position position;
-	private final Set<Cell> neighbours = new HashSet<>();
+	private final Set<Cell> neighbours;
 	private boolean alive;
 	private boolean next;
 
 	public Cell(Position position, boolean alive) {
+		this(position, alive, new HashSet<>());
+	}
+
+	Cell(Position position, boolean alive, Set<Cell> neighbours) {
 		this.position = position;
 		this.alive = alive;
 		this.next = false;
+		this.neighbours = neighbours;
 	}
 
 	public Position getPosition() {
@@ -28,14 +33,24 @@ public class Cell {
 		neighbour.addNeighbour(neighbour);
 	}
 
-	public void transition() {
+	public Cell apply() {
 		this.alive = next;
+		return this;
 	}
 
 	// FIXME this logic cannot be tested
-	public void apply() {
+	public Cell transition() {
 		final int aliveNeighbours = (int) neighbours.stream().filter(Cell::isAlive).count();
 		next = aliveNeighbours == 3 || (aliveNeighbours == 2 && alive);
+		return this;
+	}
+
+	void setAlive(boolean alive) {
+		this.alive = alive;
+	}
+
+	boolean isNext() {
+		return next;
 	}
 
 	@Override
@@ -70,4 +85,5 @@ public class Cell {
 			return false;
 		return true;
 	}
+
 }
